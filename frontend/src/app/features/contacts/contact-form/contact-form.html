@@ -1,0 +1,24 @@
+<section class="contact-form">
+	<form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
+		<label>
+			Name
+			<input type="text" formControlName="name" />
+			@if (nameControl.touched && nameControl.hasError('required')) {
+				<small class="field-error">Name is required.</small>
+			}
+		</label>
+
+		<label>
+			Number
+			<input type="tel" formControlName="number" autocomplete="tel" placeholder="11912345678" />
+			@if (numberControl.touched && numberControl.hasError('required')) {
+				<small class="field-error">Number is required.</small>
+			}
+        	@if (numberControl.touched && numberControl.hasError('pattern')) {
+				<small class="field-error">Use DDD + 9 digits (11 digits), example: 11912345678.</small>
+			}
+		</label>
+
+		<button type="submit">{{ isEditMode ? 'Update' : 'Save' }}</button>
+	</form>
+</section>

@@ -1,0 +1,37 @@
+.contact-list {
+	display: grid;
+	gap: 1rem;
+	max-width: 760px;
+	margin: 1.5rem auto;
+	padding: 0 1rem;
+}
+
+.contact-list > button {
+	justify-self: end;
+	padding: 0.7rem 1rem;
+	border: 1px solid #cfd8e3;
+	border-radius: 12px;
+	background: #ffffff;
+	color: #243041;
+	font: inherit;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.contact-list > button:hover {
+	background: #f8fafc;
+}
+
+.contact-list__items {
+	display: grid;
+	gap: 0.75rem;
+}
+
+.contact-list__empty {
+	margin: 0;
+	padding: 1rem;
+	border: 1px dashed #c9d3df;
+	border-radius: 16px;
+	color: #5c697a;
+	background: #f8fafc;
+}
