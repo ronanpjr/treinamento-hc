@@ -1,0 +1,21 @@
+<section class="contact-list">
+  <app-search-bar (search)="onSearch($event)"></app-search-bar>
+
+
+  @if (filteredContacts().length > 0) {
+    <div class="contact-list__items">
+      @for (contact of filteredContacts(); track contact.id) {
+        <app-contact-card
+          [contact]="contact"
+          (editContact)="onEditContact($event)"
+          (deleteContact)="onDeleteContact($event)"
+        />
+      }
+    </div>
+  } @else {
+    <p class="contact-list__empty">No contacts match your search.</p>
+  }
+
+  <button type="button" (click)="goToNewContact()">New Contact</button>
+
+</section>

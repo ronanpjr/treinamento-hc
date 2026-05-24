@@ -1,0 +1,12 @@
+<div class="search-bar">
+  <label class="search-bar__label" for="contact-search">Search contacts</label>
+
+  <input
+    id="contact-search"
+    class="search-bar__input"
+    type="search"
+    placeholder="Search by name or number"
+    aria-label="Search contacts by name or number"
+    (input)="onInput($event)"
+  />
+</div>

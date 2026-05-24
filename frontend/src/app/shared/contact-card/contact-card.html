@@ -1,0 +1,36 @@
+<div class="contact-card">
+  <div class="contact-card__info">
+    <span class="contact-card__name">{{ contact.name }}</span>
+    <span class="contact-card__number">{{ contact.phone }}</span>
+  </div>
+
+  <div class="contact-card__actions">
+    <button
+      type="button"
+      class="contact-card__action-button"
+      (click)="onEdit()"
+      aria-label="Editar contato"
+    >
+      Editar
+    </button>
+
+    <button
+      type="button"
+      class="contact-card__action-button contact-card__action-button--danger"
+      (click)="onDelete()"
+      aria-label="Deletar contato"
+    >
+      Deletar
+    </button>
+
+    <a
+      class="contact-card__whatsapp"
+      [href]="whatsappHref"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Open WhatsApp conversation"
+    >
+      <img src="/whatsapp.png" alt="WhatsApp" />
+    </a>
+  </div>
+</div>

@@ -1,0 +1,24 @@
+<section class="contact-form">
+	<form [formGroup]="contactForm" (ngSubmit)="onSubmit()">
+		<label>
+			Name
+			<input type="text" formControlName="name" />
+			@if (nameControl.touched && nameControl.hasError('required')) {
+				<small class="field-error">Name is required.</small>
+			}
+		</label>
+
+		<label>
+			Phone
+			<input type="tel" formControlName="phone" autocomplete="tel" placeholder="5511912345678" />
+			@if (phoneControl.touched && phoneControl.hasError('required')) {
+				<small class="field-error">Phone is required.</small>
+			}
+	        	@if (phoneControl.touched && phoneControl.hasError('phoneFormat')) {
+				<small class="field-error">Use a Brazilian phone number with DDD, with or without country code 55.</small>
+			}
+		</label>
+
+		<button type="submit">{{ isEditMode ? 'Update' : 'Save' }}</button>
+	</form>
+</section>
