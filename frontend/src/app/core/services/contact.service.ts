@@ -4,7 +4,6 @@ import { Observable } from 'rxjs';
 import { ContactModel } from '../models/contact.model';
 import { ContactFormValue } from '../models/contact-form-value.type';
 import { environment } from '../../environment';
-import { ApiResponse } from '../models/api-response';
 
 
 @Injectable({
@@ -15,20 +14,20 @@ export class ContactService {
 
   constructor(private readonly http: HttpClient) {}
 
-  getContacts(): Observable<ApiResponse<ContactModel[]>> {
-    return this.http.get<ApiResponse<ContactModel[]>>(this.apiUrl);
+  getContacts(): Observable<ContactModel[]> {
+    return this.http.get<ContactModel[]>(this.apiUrl);
   }
 
-  getContactById(id: number): Observable<ApiResponse<ContactModel>> {
-    return this.http.get<ApiResponse<ContactModel>>(`${this.apiUrl}/${id}`);
+  getContactById(id: number): Observable<ContactModel> {
+    return this.http.get<ContactModel>(`${this.apiUrl}/${id}`);
   }
 
-  createContact(contact: ContactFormValue): Observable<ApiResponse<ContactFormValue>> {
-    return this.http.post<ApiResponse<ContactFormValue>>(this.apiUrl, contact);
+  createContact(contact: ContactFormValue): Observable<ContactModel> {
+    return this.http.post<ContactModel>(this.apiUrl, contact);
   }
 
-  updateContact(contact: ContactModel): Observable<ApiResponse<ContactModel>> {
-    return this.http.put<ApiResponse<ContactModel>>(`${this.apiUrl}/${contact.id}`, contact);
+  updateContact(contact: ContactModel): Observable<ContactModel> {
+    return this.http.put<ContactModel>(`${this.apiUrl}/${contact.id}`, contact);
   }
   
   deleteContact(id: number): Observable<void> {

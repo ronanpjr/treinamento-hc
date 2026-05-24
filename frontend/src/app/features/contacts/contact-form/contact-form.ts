@@ -1,6 +1,6 @@
 import { Component, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ContactService } from '../../../core/services/contact.service';
@@ -25,9 +25,9 @@ export class ContactForm {
       nonNullable: true,
       validators: [Validators.required],
     }),
-    number: new FormControl('', {
+    phone: new FormControl('', {
       nonNullable: true,
-      validators: [Validators.required, Validators.pattern(/^[1-9]{2}9\d{8}$/)],
+      validators: [Validators.required, phoneValidator()],
     }),
   });
 
@@ -43,8 +43,8 @@ export class ContactForm {
     return this.contactForm.controls.name;
   }
 
-  get numberControl(): FormControl<string> {
-    return this.contactForm.controls.number;
+  get phoneControl(): FormControl<string> {
+    return this.contactForm.controls.phone;
   }
 
   onSubmit(): void {
@@ -54,11 +54,14 @@ export class ContactForm {
       return;
     }
 
+    const phone = this.normalizePhone(this.phoneControl.value);
+
     if (this.editingContactId !== null) {
       this.contactService
         .updateContact({
           id: this.editingContactId,
-          ...this.contactForm.getRawValue(),
+          name: this.nameControl.value,
+          phone,
         })
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
@@ -74,7 +77,10 @@ export class ContactForm {
     }
 
     this.contactService
-      .createContact(this.contactForm.getRawValue())
+      .createContact({
+        name: this.nameControl.value,
+        phone,
+      })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
@@ -106,10 +112,10 @@ export class ContactForm {
       .getContactById(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ({ data }) => {
+        next: data => {
           this.contactForm.patchValue({
             name: data.name,
-            number: data.number,
+            phone: data.phone,
           });
         },
         error: () => {
@@ -118,4 +124,29 @@ export class ContactForm {
         },
       });
   }
+
+  private normalizePhone(phone: string): string {
+    const digits = phone.replace(/\D/g, '');
+
+    if (digits.startsWith('55')) {
+      return digits;
+    }
+
+    return `55${digits}`;
+  }
+}
+
+function phoneValidator(): ValidatorFn {
+  return (control: AbstractControl<string>): ValidationErrors | null => {
+    const digits = control.value.replace(/\D/g, '');
+
+    if (!digits) {
+      return null;
+    }
+
+    const isLocalBrazilianNumber = digits.length === 10 || digits.length === 11;
+    const isCountryCodeBrazilianNumber = (digits.length === 12 || digits.length === 13) && digits.startsWith('55');
+
+    return isLocalBrazilianNumber || isCountryCodeBrazilianNumber ? null : { phoneFormat: true };
+  };
 }

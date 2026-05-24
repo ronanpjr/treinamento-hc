@@ -4,7 +4,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ContactService } from '../../../core/services/contact.service';
 import { ContactModel } from '../../../core/models/contact.model';
 import { NotificationService } from '../../../core/services/notification.service';
-import { map } from 'rxjs';
 
 @Component({
   selector: 'app-contact-list',
@@ -36,7 +35,7 @@ export class ContactList {
     return contacts.filter(contact => {
       return (
         contact.name.toLowerCase().includes(term) ||
-        contact.number.toLowerCase().includes(term)
+        contact.phone.toLowerCase().includes(term)
       );
     });
   });
@@ -68,10 +67,7 @@ export class ContactList {
   private loadContacts(): void {
     this.contactService
       .getContacts()
-      .pipe(
-        map(res => res.data),
-        takeUntilDestroyed(this.destroyRef),
-      )
+      .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: contacts => {
           this.contacts.set(contacts);

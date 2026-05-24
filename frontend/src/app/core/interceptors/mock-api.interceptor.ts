@@ -9,15 +9,14 @@ import {
 import { Observable, of } from 'rxjs';
 import { delay } from 'rxjs/operators';
 import { environment } from '../../environment';
-import { ApiResponse } from '../models/api-response';
 import { ContactModel } from '../models/contact.model';
 
 @Injectable()
 export class MockApiInterceptor implements HttpInterceptor {
   private readonly contacts: ContactModel[] = [
-    { id: 1, name: 'Ana Souza', number: '+55 11 98888-0001' },
-    { id: 2, name: 'Bruno Lima', number: '+55 21 97777-0002' },
-    { id: 3, name: 'Carla Mendes', number: '+55 31 96666-0003' },
+    { id: 1, name: 'Ana Souza', phone: '+55 11 98888-0001' },
+    { id: 2, name: 'Bruno Lima', phone: '+55 21 97777-0002' },
+    { id: 3, name: 'Carla Mendes', phone: '+55 31 96666-0003' },
   ];
 
   private lastId = this.contacts.length;
@@ -32,10 +31,7 @@ export class MockApiInterceptor implements HttpInterceptor {
 
   private handleContacts(req: HttpRequest<unknown>): Observable<HttpEvent<unknown>> {
     if (req.method === 'GET' && req.url.match(/\/contacts$/)) {
-      return this.ok({
-        data: this.contacts,
-        status: 200,
-      });
+      return this.ok(this.contacts, 200);
     }
 
     if (req.method === 'GET' && req.url.match(/\/contacts\/\d+$/)) {
@@ -46,10 +42,7 @@ export class MockApiInterceptor implements HttpInterceptor {
         return this.notFound('Contact not found');
       }
 
-      return this.ok({
-        data: contact,
-        status: 200,
-      });
+      return this.ok(contact, 200);
     }
 
     if (req.method === 'POST' && req.url.match(/\/contacts$/)) {
@@ -57,15 +50,12 @@ export class MockApiInterceptor implements HttpInterceptor {
       const newContact: ContactModel = {
         id: ++this.lastId,
         name: body.name ?? '',
-        number: body.number ?? '',
+        phone: body.phone ?? '',
       };
 
       this.contacts.push(newContact);
 
-      return this.ok({
-        data: newContact,
-        status: 201,
-      });
+      return this.ok(newContact, 201);
     }
 
     if (req.method === 'PUT' && req.url.match(/\/contacts\/\d+$/)) {
@@ -80,15 +70,12 @@ export class MockApiInterceptor implements HttpInterceptor {
       const updatedContact: ContactModel = {
         id,
         name: body.name ?? this.contacts[index].name,
-        number: body.number ?? this.contacts[index].number,
+        phone: body.phone ?? this.contacts[index].phone,
       };
 
       this.contacts[index] = updatedContact;
 
-      return this.ok({
-        data: updatedContact,
-        status: 200,
-      });
+      return this.ok(updatedContact, 200);
     }
 
     if (req.method === 'DELETE' && req.url.match(/\/contacts\/\d+$/)) {
@@ -112,19 +99,15 @@ export class MockApiInterceptor implements HttpInterceptor {
     return Number(parts[parts.length - 1]);
   }
 
-  private ok<T>(body: ApiResponse<T>): Observable<HttpEvent<unknown>> {
-    return of(new HttpResponse<ApiResponse<T>>({ status: body.status, body })).pipe(delay(250));
+  private ok<T>(body: T, status: number): Observable<HttpEvent<unknown>> {
+    return of(new HttpResponse<T>({ status, body })).pipe(delay(250));
   }
 
   private notFound(message: string): Observable<HttpEvent<unknown>> {
     return of(
-      new HttpResponse<ApiResponse<null>>({
+      new HttpResponse<{ error: string }>({
         status: 404,
-        body: {
-          data: null,
-          error: message,
-          status: 404,
-        },
+        body: { error: message },
       })
     ).pipe(delay(250));
   }

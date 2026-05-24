@@ -9,13 +9,13 @@
 		</label>
 
 		<label>
-			Number
-			<input type="tel" formControlName="number" autocomplete="tel" placeholder="11912345678" />
-			@if (numberControl.touched && numberControl.hasError('required')) {
-				<small class="field-error">Number is required.</small>
+			Phone
+			<input type="tel" formControlName="phone" autocomplete="tel" placeholder="5511912345678" />
+			@if (phoneControl.touched && phoneControl.hasError('required')) {
+				<small class="field-error">Phone is required.</small>
 			}
-        	@if (numberControl.touched && numberControl.hasError('pattern')) {
-				<small class="field-error">Use DDD + 9 digits (11 digits), example: 11912345678.</small>
+	        	@if (phoneControl.touched && phoneControl.hasError('phoneFormat')) {
+				<small class="field-error">Use a Brazilian phone number with DDD, with or without country code 55.</small>
 			}
 		</label>
 

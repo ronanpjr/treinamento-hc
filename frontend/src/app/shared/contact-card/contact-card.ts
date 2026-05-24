@@ -14,7 +14,7 @@ export class ContactCard {
   @Output() deleteContact = new EventEmitter<number>();
 
   get whatsappHref(): string {
-    const phoneNumber = this.contact.number.replace(/\D/g, '').replace(/^0+/, '');
+    const phoneNumber = this.contact.phone.replace(/\D/g, '').replace(/^0+/, '');
 
     return phoneNumber ? `https://wa.me/${phoneNumber}` : '#';
   }
