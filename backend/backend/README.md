@@ -1,4 +1,4 @@
-# HC Phonebook API
+# HC API
 
 REST API for managing phonebook contacts, built with ASP.NET Core and PostgreSQL.
 
@@ -18,9 +18,8 @@ The recommended way to run the full project (frontend + backend + database):
 docker compose up --build
 ```
 
-- API: `http://localhost:8081`
-- Swagger UI: `http://localhost:8081/swagger`
-- Frontend: `http://localhost:8080`
+- API Swagger UI: `http://localhost:8081/swagger`
+- Frontend: `http://localhost:4200`
 
 ## Running locally (Visual Studio)
 
