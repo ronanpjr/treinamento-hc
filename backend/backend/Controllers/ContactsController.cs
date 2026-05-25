@@ -1,134 +1,152 @@
-﻿// File: Controllers/ContactsController.cs
-// Status: NEW FILE
-
-using backend.Data;
-using backend.DTOs;
-using backend.Models;
-using backend.Utilities;
+﻿using backend.DTOs;
+using backend.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers;
 
+/// <summary>
+/// REST endpoints for managing contacts.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Produces("application/json")]
 public class ContactsController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IContactService _service;
 
-    public ContactsController(AppDbContext context)
+    public ContactsController(IContactService service)
     {
-        _context = context;
+        _service = service;
     }
 
+    /// <summary>
+    /// Returns all contacts ordered by name.
+    /// </summary>
+    /// <response code="200">Returns the list of contacts (may be empty).</response>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<ContactResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ContactResponse>>> GetAll()
     {
-        List<Contact> contacts = await _context.Contacts
-            .OrderBy(c => c.Name)
-            .ToListAsync();
-
-        IEnumerable<ContactResponse> response = contacts.Select(ToResponse);
-        return Ok(response);
+        IEnumerable<ContactResponse> contacts = await _service.GetAllAsync();
+        return Ok(contacts);
     }
 
+    /// <summary>
+    /// Returns a single contact by its Id.
+    /// </summary>
+    /// <param name="id">The contact Id.</param>
+    /// <response code="200">Contact found.</response>
+    /// <response code="404">Contact not found.</response>
     [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(ContactResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ContactResponse>> GetById(int id)
     {
-        Contact? contact = await _context.Contacts.FindAsync(id);
+        ContactResponse? contact = await _service.GetByIdAsync(id);
 
         if (contact is null)
         {
             return NotFound();
         }
 
-        return Ok(ToResponse(contact));
+        return Ok(contact);
     }
 
+    /// <summary>
+    /// Creates a new contact. The phone number is normalized to the international
+    /// format (digits only, including country code).
+    /// </summary>
+    /// <param name="request">Contact data: name and phone.</param>
+    /// <response code="201">Contact created.</response>
+    /// <response code="400">Validation failed (missing fields or invalid phone format).</response>
     [HttpPost]
+    [ProducesResponseType(typeof(ContactResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ContactResponse>> Create([FromBody] ContactRequest request)
     {
-        if (!PhoneHelper.TryNormalize(request.Phone, out string normalizedPhone, out string phoneError))
+        try
         {
-            ModelState.AddModelError(nameof(request.Phone), phoneError);
+            ContactResponse created = await _service.CreateAsync(request);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+        }
+        catch (ArgumentException ex)
+        {
+            ModelState.AddModelError(ex.ParamName ?? string.Empty, ex.Message);
             return ValidationProblem(ModelState);
         }
-
-        Contact contact = new()
-        {
-            Name = request.Name.Trim(),
-            Phone = normalizedPhone
-        };
-
-        _context.Contacts.Add(contact);
-        await _context.SaveChangesAsync();
-
-        ContactResponse response = ToResponse(contact);
-        return CreatedAtAction(nameof(GetById), new { id = contact.Id }, response);
     }
 
+    /// <summary>
+    /// Updates an existing contact.
+    /// </summary>
+    /// <param name="id">The contact Id.</param>
+    /// <param name="request">Updated contact data.</param>
+    /// <response code="204">Contact updated.</response>
+    /// <response code="400">Validation failed.</response>
+    /// <response code="404">Contact not found.</response>
     [HttpPut("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, [FromBody] ContactRequest request)
     {
-        Contact? contact = await _context.Contacts.FindAsync(id);
-
-        if (contact is null)
+        try
         {
-            return NotFound();
+            ContactResponse? updated = await _service.UpdateAsync(id, request);
+
+            if (updated is null)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
         }
-
-        if (!PhoneHelper.TryNormalize(request.Phone, out string normalizedPhone, out string phoneError))
+        catch (ArgumentException ex)
         {
-            ModelState.AddModelError(nameof(request.Phone), phoneError);
+            ModelState.AddModelError(ex.ParamName ?? string.Empty, ex.Message);
             return ValidationProblem(ModelState);
         }
-
-        contact.Name = request.Name.Trim();
-        contact.Phone = normalizedPhone;
-
-        await _context.SaveChangesAsync();
-        return NoContent();
     }
 
+    /// <summary>
+    /// Deletes a contact by Id.
+    /// </summary>
+    /// <param name="id">The contact Id.</param>
+    /// <response code="204">Contact deleted.</response>
+    /// <response code="404">Contact not found.</response>
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
-        Contact? contact = await _context.Contacts.FindAsync(id);
+        bool deleted = await _service.DeleteAsync(id);
 
-        if (contact is null)
+        if (!deleted)
         {
             return NotFound();
         }
 
-        _context.Contacts.Remove(contact);
-        await _context.SaveChangesAsync();
         return NoContent();
     }
 
+    /// <summary>
+    /// Builds the wa.me link for a contact using the stored normalized phone.
+    /// </summary>
+    /// <param name="id">The contact Id.</param>
+    /// <response code="200">Returns an object with the wa.me URL.</response>
+    /// <response code="404">Contact not found.</response>
     [HttpGet("{id:int}/whatsapp")]
+    [ProducesResponseType(typeof(WhatsAppLinkResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<WhatsAppLinkResponse>> GetWhatsAppLink(int id)
     {
-        Contact? contact = await _context.Contacts.FindAsync(id);
+        WhatsAppLinkResponse? response = await _service.GetWhatsAppLinkAsync(id);
 
-        if (contact is null)
+        if (response is null)
         {
             return NotFound();
         }
 
-        WhatsAppLinkResponse response = new()
-        {
-            Url = PhoneHelper.BuildWhatsAppLink(contact.Phone)
-        };
-
         return Ok(response);
-    }
-    private static ContactResponse ToResponse(Contact contact)
-    {
-        return new ContactResponse
-        {
-            Id = contact.Id,
-            Name = contact.Name,
-            Phone = contact.Phone
-        };
     }
 }

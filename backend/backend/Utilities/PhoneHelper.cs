@@ -2,6 +2,11 @@
 
 namespace backend.Utilities;
 
+
+/// <summary>
+/// helper for phone-number normalization and wa.me link construction.
+/// limited to brazilian numbers
+/// </summary>
 public static class PhoneHelper
 {
     private const string BrazilCountryCode = "55";
@@ -38,6 +43,9 @@ public static class PhoneHelper
         return true;
     }
 
+    /// <summary>
+    /// Builds the wa.me URL for an already-normalized phone number.
+    /// </summary>
     public static string BuildWhatsAppLink(string normalizedPhone)
     {
         return $"{WhatsAppBaseUrl}{normalizedPhone}";

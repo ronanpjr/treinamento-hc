@@ -1,5 +1,9 @@
 ﻿namespace backend.DTOs;
 
+/// <summary>
+/// returned by the contact endpoints (GET, POST, PUT).
+/// Mirrors the Contact entity
+/// </summary>
 public class ContactResponse
 {
     public int Id { get; set; }

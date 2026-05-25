@@ -2,6 +2,10 @@
 
 namespace backend.DTOs;
 
+
+/// <summary>
+/// used by POST and PUT endpoints when creating or updating a contact.
+/// </summary>
 public class ContactRequest
 {
     [Required(ErrorMessage = "Name is required.")]
